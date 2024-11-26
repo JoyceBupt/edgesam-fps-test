@@ -1,3 +1,6 @@
+// 初始化 vConsole
+var vConsole = new VConsole();
+
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const fpsDisplay = document.getElementById("fps");
@@ -8,8 +11,15 @@ let lastFrameTime = performance.now();
 let frameCount = 0;
 
 async function loadModels() {
-  encoderModel = await tf.loadGraphModel("tfjs_encoder/model.json");
-  decoderModel = await tf.loadGraphModel("tfjs_decoder/model.json");
+  console.log("开始加载模型...");
+  try {
+    encoderModel = await tf.loadGraphModel("tfjs_encoder/model.json");
+    console.log("编码器模型加载完成。");
+    decoderModel = await tf.loadGraphModel("tfjs_decoder/model.json");
+    console.log("解码器模型加载完成。");
+  } catch (error) {
+    console.error("加载模型时出错：", error);
+  }
 }
 
 async function setupCamera() {
@@ -19,6 +29,7 @@ async function setupCamera() {
       .then((stream) => {
         video.srcObject = stream;
         video.onloadedmetadata = () => {
+          console.log("摄像头已就绪。");
           resolve();
         };
       })
@@ -34,14 +45,33 @@ function processFrame() {
   let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let input = tf.browser.fromPixels(imageData).toFloat().expandDims(0);
 
-  // TODO: 调用模型进行推理
-  // let encoderOutput = encoderModel.predict(input);
-  // let decoderOutput = decoderModel.predict(encoderOutput);
+  // 图像预处理（根据模型需求调整）
+  let resizedInput = tf.image.resizeBilinear(input, [256, 256]); // 假设模型输入为 256x256
+  let normalizedInput = resizedInput.div(255.0); // 归一化到 [0, 1]
+
+  try {
+    // 调用编码器模型进行推理
+    let encoderOutput = encoderModel.predict(normalizedInput);
+    console.log("编码器输出：", encoderOutput);
+
+    // 调用解码器模型进行推理
+    let decoderOutput = decoderModel.predict(encoderOutput);
+    console.log("解码器输出：", decoderOutput);
+
+    // 在此处处理 decoderOutput，例如显示结果
+    // ...
+
+    // 清理内存
+    encoderOutput.dispose();
+    decoderOutput.dispose();
+  } catch (error) {
+    console.error("模型推理时出错：", error);
+  }
 
   // 清理内存
   input.dispose();
-  // encoderOutput.dispose();
-  // decoderOutput.dispose();
+  resizedInput.dispose();
+  normalizedInput.dispose();
 
   frameCount++;
   let now = performance.now();

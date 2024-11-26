@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>EdgeSAM 模型帧率测试</title>
+    <!-- 引入 vConsole -->
+    <script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>
 </head>
 <body>
     <h1>EdgeSAM 模型帧率测试</h1>
     <video id="video" width="640" height="480" autoplay playsinline></video>
     <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
     <p>当前帧率：<span id="fps">0</span> FPS</p>
+    <!-- 引入 TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <!-- 引入主脚本 -->
     <script src="script.js"></script>
 </body>
 </html>
